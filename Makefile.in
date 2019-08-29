@@ -1,0 +1,133 @@
+V=@
+
+PROGRAMS=\
+	bin/lvm3
+
+.PHONY: all
+all: $(PROGRAMS)
+
+LIB_SOURCE=\
+	base/data-struct/radix-tree-adaptive.c \
+	base/data-struct/bitset.c \
+	base/data-struct/radix-tree.c \
+	base/data-struct/list.c \
+	base/data-struct/radix-tree-simple.c \
+	base/data-struct/hash.c \
+	base/memory/pool-debug.c \
+	base/memory/pool.c \
+	base/regex/matcher.c \
+	base/regex/parse_rx.c \
+	base/regex/ttree.c \
+	base/string/builder.c \
+	base/string/utils.c \
+	io/io-manager.c \
+	io/io-processor.c \
+	io/io-manager-utils.c
+
+LIB_OBJECTS:=$(subst .c,.o,$(LIB_SOURCE))
+LIB_OBJECTS:=$(subst .c,.o,$(LIB_SOURCE))
+
+PROGRAM_SOURCE=\
+	application/main.c
+
+PROGRAM_OBJECTS:=$(subst .c,.o,$(PROGRAM_SOURCE))
+PROGRAM_OBJECTS:=$(subst .c,.o,$(PROGRAM_SOURCE))
+
+TEST_SOURCE=\
+	unit-tests/io-manager_t.c \
+	unit-tests/bcache_t.c \
+	unit-tests/range-set_t.c \
+	unit-tests/vdo_t.c \
+	unit-tests/activation-generator_t.c \
+	unit-tests/io-processor_t.c \
+	unit-tests/buddy_allocator_t.c \
+	unit-tests/run.c \
+	unit-tests/rt_case1.c \
+	unit-tests/label_t.c \
+	unit-tests/io-manager-utils_t.c \
+	unit-tests/bcache_utils_t.c \
+	unit-tests/matcher_t.c \
+	unit-tests/percent_t.c \
+	unit-tests/config_t.c \
+	unit-tests/radix_tree_t.c \
+	unit-tests/bitset_t.c \
+	unit-tests/dmstatus_t.c \
+	unit-tests/framework.c \
+	unit-tests/io_engine_t.c \
+	unit-tests/dmlist_t.c \
+	unit-tests/string_t.c
+
+TEST_OBJECTS:=$(subst .c,.o,$(TEST_SOURCE))
+TEST_OBJECTS:=$(subst .c,.o,$(TEST_SOURCE))
+
+CC:=@CC@
+STRIP:=@STRIP@
+TOP_DIR:=@top_srcdir@
+TOP_BUILDDIR:=@top_builddir@
+CFLAGS+=-Wall -fPIC
+CFLAGS+=@LFS_FLAGS@
+
+CFLAGS+=@COPTIMISE_FLAG@
+CFLAGS+=@CDEBUG_FLAG@
+CFLAGS+=@C_STRERROR_FLAG@
+CFLAGS+=@LFS_FLAGS@
+INCLUDES+=-I$(TOP_BUILDDIR) -I$(TOP_DIR)
+LIBS:=-laio
+
+INSTALL:=@INSTALL@
+PREFIX:=@prefix@
+BINDIR:=$(DESTDIR)$(PREFIX)/sbin
+DATADIR:=$(DESTDIR)$(PREFIX)/share
+MANPATH:=$(DATADIR)/man
+
+vpath %.cc $(TOP_DIR)
+
+INSTALL_DIR = $(INSTALL) -m 755 -d
+INSTALL_PROGRAM = $(INSTALL) -m 755
+INSTALL_DATA = $(INSTALL) -p -m 644
+
+.SUFFIXES: .d .txt .8
+
+%.o: %.c
+	@echo "    [CC] $<"
+	@mkdir -p $(dir $@)
+	$(V) $(CC) -c $(INCLUDES) $(CFLAGS) -o $@ $<
+	@echo "    [DEP] $<"
+	$(V) $(CC) -MM -MT $(subst .c,.o,$<) $(INCLUDES) $(CFLAGS) $< > $*.$$$$; \
+	sed 's,\([^ :]*\)\.o[ :]*,\1.o \1.gmo $* : Makefile ,g' < $*.$$$$ > $*.d; \
+	$(RM) $*.$$$$
+
+%.8: %.txt scripts/txt2man
+	@echo "    [txt2man] $<"
+	@mkdir -p $(dir $@)
+	$(V) scripts/txt2man -p -t $(basename $(notdir $<)) $< > $@
+
+#----------------------------------------------------------------
+
+lib/liblvm3.a: $(OBJECTS)
+	@echo "    [AR]  $<"
+	@mkdir -p $(dir $@)
+	$(V)ar -rv $@ $(OBJECTS) $(EMITTERS) > /dev/null 2>&1
+
+bin/lvm3: $(OBJECTS) $(PROGRAM_OBJECTS)
+	@echo "    [LD]  $@"
+	@mkdir -p $(dir $@)
+	$(V) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LIBS)
+
+#----------------------------------------------------------------
+
+.PHONY: clean distclean
+
+clean:
+	find . -name \*.o -delete
+	find . -name \*.gmo -delete
+	find . -name \*.d -delete
+	$(RM) $(TEST_PROGRAMS) $(PROGRAMS) lib/*.a
+
+distclean: clean
+	$(RM) config.cache config.log config.status configure.h version.h Makefile
+
+-include $(LIB_DEPENDS)
+-include $(PROGRAM_DEPENDS)
+-include $(TEST_DEPENDS)
+
