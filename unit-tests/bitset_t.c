@@ -13,21 +13,10 @@
  */
 
 #include "units.h"
-#include "device_mapper/all.h"
 
 enum {
         NR_BITS = 137
 };
-
-static void *_mem_init(void) {
-	struct dm_pool *mem = dm_pool_create("bitset test", 1024);
-	if (!mem) {
-		fprintf(stderr, "out of memory\n");
-		exit(1);
-	}
-
-	return mem;
-}
 
 static void _mem_exit(void *mem)
 {

@@ -1,19 +1,18 @@
 V=@
 
 PROGRAMS=\
-	bin/lvm3
+	bin/lvm3 \
+	unit-tests/unit-test
 
 .PHONY: all
 all: $(PROGRAMS)
 
 LIB_SOURCE=\
 	base/data-struct/radix-tree-adaptive.c \
-	base/data-struct/bitset.c \
 	base/data-struct/radix-tree.c \
 	base/data-struct/list.c \
 	base/data-struct/radix-tree-simple.c \
-	base/string/builder.c \
-	base/string/utils.c \
+	base/data-struct/range-set.c \
 	io/io-manager.c \
 	io/io-processor.c \
 	io/io-manager-utils.c
@@ -28,23 +27,15 @@ PROGRAM_OBJECTS:=$(subst .c,.o,$(PROGRAM_SOURCE))
 PROGRAM_DEPENDS:=$(subst .c,.d,$(PROGRAM_SOURCE))
 
 TEST_SOURCE=\
-	unit-tests/io-manager_t.c \
-	unit-tests/range-set_t.c \
-	unit-tests/io-manager_t.c \
-	unit-tests/io-processor_t.c \
-	unit-tests/buddy_allocator_t.c \
-	unit-tests/run.c \
-	unit-tests/rt_case1.c \
-	unit-tests/label_t.c \
-	unit-tests/io-manager-utils_t.c \
-	unit-tests/percent_t.c \
-	unit-tests/config_t.c \
-	unit-tests/radix_tree_t.c \
-	unit-tests/bitset_t.c \
 	unit-tests/framework.c \
-	unit-tests/io_engine_t.c \
+	unit-tests/run.c \
+	\
 	unit-tests/dmlist_t.c \
-	unit-tests/string_t.c
+	unit-tests/io-manager_t.c \
+	unit-tests/io-manager-utils_t.c \
+	unit-tests/io-processor_t.c \
+	unit-tests/radix_tree_t.c \
+	unit-tests/range-set_t.c
 
 TEST_OBJECTS:=$(subst .c,.o,$(TEST_SOURCE))
 TEST_DEPENDS:=$(subst .c,.d,$(TEST_SOURCE))
@@ -94,11 +85,15 @@ INSTALL_DATA = $(INSTALL) -p -m 644
 lib/liblvm3.a: $(LIB_OBJECTS)
 	@echo "    [AR]  $<"
 	@mkdir -p $(dir $@)
-	$(V)ar -rv $@ $(OBJECTS) $(EMITTERS) > /dev/null 2>&1
+	$(V)ar -rv $@ $+ > /dev/null 2>&1
 
 bin/lvm3: $(PROGRAM_OBJECTS) lib/liblvm3.a
 	@echo "    [LD]  $@"
 	@mkdir -p $(dir $@)
+	$(V) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LIBS)
+
+unit-tests/unit-test: $(TEST_OBJECTS) lib/liblvm3.a
+	@echo "    [LD]  $@"
 	$(V) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LIBS)
 
 #----------------------------------------------------------------

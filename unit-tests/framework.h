@@ -1,8 +1,7 @@
 #ifndef TEST_UNIT_FRAMEWORK_H
 #define TEST_UNIT_FRAMEWORK_H
 
-#include "configure.h"
-#include "device_mapper/all.h"
+#include "base/data-struct/list.h"
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -14,7 +14,7 @@
 
 #define _GNU_SOURCE
 
-#include "lib/device/io-manager.h"
+#include "io/io-manager.h"
 #include "framework.h"
 #include "units.h"
 

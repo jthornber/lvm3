@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //----------------------------------------------------------------
 
@@ -805,7 +806,7 @@ static void test_bcache_scenario3(void *fixture)
 {
 	struct radix_tree *rt = fixture;
 
-	#include "test/unit/rt_case1.c"
+	#include "unit-tests/rt_case1.c"
 }
 
 //----------------------------------------------------------------

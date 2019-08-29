@@ -13,7 +13,11 @@
  */
 
 #include "units.h"
-#include "device_mapper/all.h"
+
+#include "base/memory/array-size.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 static void test_dmlist_splice(void *fixture)
 {
@@ -25,7 +29,7 @@ static void test_dmlist_splice(void *fixture)
 	dm_list_init(&list1);
 	dm_list_init(&list2);
 
-	for (i = 0; i < DM_ARRAY_SIZE(a); i++)
+	for (i = 0; i < ARRAY_SIZE(a); i++)
 		dm_list_add(&list1, &a[i]);
 
 	dm_list_splice(&list2, &list1);

@@ -13,7 +13,7 @@
  */
 
 #include "units.h"
-#include "lib/device/bcache.h"
+#include "io/io-manager.h"
 
 #include <errno.h>
 #include <stdio.h>

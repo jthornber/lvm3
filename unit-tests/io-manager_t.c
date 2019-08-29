@@ -17,7 +17,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "lib/device/io-manager.h"
+#include "base/memory/array-size.h"
+#include "io/io-manager.h"
 #include "framework.h"
 #include "units.h"
 
@@ -551,7 +552,7 @@ static void test_block_size_must_be_multiple_of_page_size(void *fixture)
 
 	unsigned i;
 
-	for (i = 0; i < DM_ARRAY_SIZE(_bad_examples); i++)
+	for (i = 0; i < ARRAY_SIZE(_bad_examples); i++)
 		bad_create(_bad_examples[i], 16);
 
 	for (i = 1; i < 8; i++)
@@ -817,7 +818,7 @@ static void test_multiple_files(void *context)
 	struct block *b;
 	unsigned i;
 
-	for (i = 0; i < DM_ARRAY_SIZE(_paths); i++) {
+	for (i = 0; i < ARRAY_SIZE(_paths); i++) {
 		_expect(me, E_OPEN);
 		dev = io_get_dev(iom, _paths[i], 0);
 		_expect_read(me, dev, 0);
@@ -828,7 +829,7 @@ static void test_multiple_files(void *context)
 		io_put_dev(dev);
 	}
 
-	for (i = 0; i < DM_ARRAY_SIZE(_paths); i++)
+	for (i = 0; i < ARRAY_SIZE(_paths); i++)
 		_expect(me, E_CLOSE);
 }
 

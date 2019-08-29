@@ -12,7 +12,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "lib/device/io-processor.h"
+#include "io/io-processor.h"
 
 #include "framework.h"
 #include "units.h"

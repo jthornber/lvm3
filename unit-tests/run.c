@@ -2,9 +2,10 @@
 
 #include <getopt.h>
 #include <regex.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <setjmp.h>
+#include <string.h>
 #include <unistd.h>
 
 //-----------------------------------------------------------------
