@@ -1,8 +1,6 @@
 #ifndef BASE_DATA_STRUCT_BITSET_H
 #define BASE_DATA_STRUCT_BITSET_H
 
-#include "base/memory/pool.h"
-
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -11,7 +9,7 @@
 
 typedef uint32_t *dm_bitset_t;
 
-dm_bitset_t dm_bitset_create(struct dm_pool *mem, unsigned num_bits);
+dm_bitset_t dm_bitset_create(unsigned num_bits);
 void dm_bitset_destroy(dm_bitset_t bs);
 
 int dm_bitset_equal(dm_bitset_t in1, dm_bitset_t in2);
@@ -42,17 +40,6 @@ int dm_bit_get_prev(dm_bitset_t bs, int last_bit);
 
 #define dm_bit_copy(bs1, bs2) \
    memcpy((bs1) + 1, (bs2) + 1, ((*(bs2) / DM_BITS_PER_INT) + 1) * sizeof(int))
-
-/*
- * Parse a string representation of a bitset into a dm_bitset_t. The
- * notation used is identical to the kernel bitmap parser (cpuset etc.)
- * and supports both lists ("1,2,3") and ranges ("1-2,5-8"). If the mem
- * parameter is NULL memory for the bitset will be allocated using
- * malloc(). Otherwise the bitset will be allocated using the supplied
- * dm_pool.
- */
-dm_bitset_t dm_bitset_parse_list(const char *str, struct dm_pool *mem,
-				 size_t min_num_bits);
 
 //----------------------------------------------------------------
 

@@ -20,6 +20,8 @@ static bool _ensure(struct string_builder *sb, size_t count)
 		sb->b = new;
 		sb->alloc_e = sb->b + new_len;
 	}
+
+	return true;
 }
 
 static bool _terminate(struct string_builder *sb)
@@ -28,6 +30,7 @@ static bool _terminate(struct string_builder *sb)
 		return false;
 
 	*sb->e = '\0';
+	return true;
 }
 
 bool string_builder_init(struct string_builder *sb, size_t hint)

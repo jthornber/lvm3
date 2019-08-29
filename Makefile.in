@@ -12,12 +12,6 @@ LIB_SOURCE=\
 	base/data-struct/radix-tree.c \
 	base/data-struct/list.c \
 	base/data-struct/radix-tree-simple.c \
-	base/data-struct/hash.c \
-	base/memory/pool-debug.c \
-	base/memory/pool.c \
-	base/regex/matcher.c \
-	base/regex/parse_rx.c \
-	base/regex/ttree.c \
 	base/string/builder.c \
 	base/string/utils.c \
 	io/io-manager.c \
@@ -25,40 +19,35 @@ LIB_SOURCE=\
 	io/io-manager-utils.c
 
 LIB_OBJECTS:=$(subst .c,.o,$(LIB_SOURCE))
-LIB_OBJECTS:=$(subst .c,.o,$(LIB_SOURCE))
+LIB_DEPENDS:=$(subst .c,.d,$(LIB_SOURCE))
 
 PROGRAM_SOURCE=\
 	application/main.c
 
 PROGRAM_OBJECTS:=$(subst .c,.o,$(PROGRAM_SOURCE))
-PROGRAM_OBJECTS:=$(subst .c,.o,$(PROGRAM_SOURCE))
+PROGRAM_DEPENDS:=$(subst .c,.d,$(PROGRAM_SOURCE))
 
 TEST_SOURCE=\
 	unit-tests/io-manager_t.c \
-	unit-tests/bcache_t.c \
 	unit-tests/range-set_t.c \
-	unit-tests/vdo_t.c \
-	unit-tests/activation-generator_t.c \
+	unit-tests/io-manager_t.c \
 	unit-tests/io-processor_t.c \
 	unit-tests/buddy_allocator_t.c \
 	unit-tests/run.c \
 	unit-tests/rt_case1.c \
 	unit-tests/label_t.c \
 	unit-tests/io-manager-utils_t.c \
-	unit-tests/bcache_utils_t.c \
-	unit-tests/matcher_t.c \
 	unit-tests/percent_t.c \
 	unit-tests/config_t.c \
 	unit-tests/radix_tree_t.c \
 	unit-tests/bitset_t.c \
-	unit-tests/dmstatus_t.c \
 	unit-tests/framework.c \
 	unit-tests/io_engine_t.c \
 	unit-tests/dmlist_t.c \
 	unit-tests/string_t.c
 
 TEST_OBJECTS:=$(subst .c,.o,$(TEST_SOURCE))
-TEST_OBJECTS:=$(subst .c,.o,$(TEST_SOURCE))
+TEST_DEPENDS:=$(subst .c,.d,$(TEST_SOURCE))
 
 CC:=@CC@
 STRIP:=@STRIP@
@@ -93,9 +82,7 @@ INSTALL_DATA = $(INSTALL) -p -m 644
 	@mkdir -p $(dir $@)
 	$(V) $(CC) -c $(INCLUDES) $(CFLAGS) -o $@ $<
 	@echo "    [DEP] $<"
-	$(V) $(CC) -MM -MT $(subst .c,.o,$<) $(INCLUDES) $(CFLAGS) $< > $*.$$$$; \
-	sed 's,\([^ :]*\)\.o[ :]*,\1.o \1.gmo $* : Makefile ,g' < $*.$$$$ > $*.d; \
-	$(RM) $*.$$$$
+	$(V) $(CC) -MM -MT $(subst .c,.o,$<) $(INCLUDES) $(CFLAGS) $< > $*.d
 
 %.8: %.txt scripts/txt2man
 	@echo "    [txt2man] $<"
@@ -104,12 +91,12 @@ INSTALL_DATA = $(INSTALL) -p -m 644
 
 #----------------------------------------------------------------
 
-lib/liblvm3.a: $(OBJECTS)
+lib/liblvm3.a: $(LIB_OBJECTS)
 	@echo "    [AR]  $<"
 	@mkdir -p $(dir $@)
 	$(V)ar -rv $@ $(OBJECTS) $(EMITTERS) > /dev/null 2>&1
 
-bin/lvm3: $(OBJECTS) $(PROGRAM_OBJECTS)
+bin/lvm3: $(PROGRAM_OBJECTS) lib/liblvm3.a
 	@echo "    [LD]  $@"
 	@mkdir -p $(dir $@)
 	$(V) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LIBS)

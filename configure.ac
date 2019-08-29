@@ -153,6 +153,5 @@ dnl -- First and last lines should not contain files to generate in order to
 dnl -- keep utility scripts running properly
 AC_CONFIG_FILES([
 Makefile
-version.h
 ])
 AC_OUTPUT

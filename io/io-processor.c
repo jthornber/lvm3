@@ -12,12 +12,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "lib/device/io-processor.h"
+#include "io/io-processor.h"
 
 #include "base/data-struct/list.h"
 #include "base/memory/zalloc.h"
-#include "lib/log/lvm-logging.h"
-#include "lib/log/log.h"
+#include "base/log/log.h"
+
+#include <string.h>
 
 //----------------------------------------------------------------
 

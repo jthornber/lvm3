@@ -14,7 +14,6 @@
 
 #include "base/string/utils.h"
 
-#include "base/memory/pool.h"
 #include "base/log/log.h"
 
 #include <ctype.h>
@@ -23,6 +22,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /*
  * consume characters while they match the predicate function.
@@ -67,6 +67,7 @@ int dm_split_words(char *buffer, unsigned max,
 	return arg;
 }
 
+#if 0
 /*
  * Remove hyphen quoting from a component of a name.
  * NULL-terminates the component and returns start of next component.
@@ -117,7 +118,7 @@ int dm_split_lvm_name(struct dm_pool *mem, const char *dmname,
 
 	return 1;
 }
-
+#endif
 /*
  * On error, up to glibc 2.0.6, snprintf returned -1 if buffer was too small;
  * From glibc 2.1 it returns number of chars (excl. trailing null) that would 
@@ -275,6 +276,7 @@ static void _unquote_characters(char *src, const char *orig_chars,
 	*out = '\0';
 }
 
+#if 0
 /*
  * Copies a string, quoting hyphens with hyphens.
  */
@@ -345,6 +347,7 @@ char *dm_build_dm_uuid(struct dm_pool *mem, const char *uuid_prefix, const char 
 
 	return dmuuid;
 }
+#endif
 
 /*
  * Copies a string, quoting double quotes with backslashes.

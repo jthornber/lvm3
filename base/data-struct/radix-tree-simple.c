@@ -185,7 +185,7 @@ bool radix_tree_remove(struct radix_tree *rt, uint8_t *kb, uint8_t *ke)
 unsigned radix_tree_remove_prefix(struct radix_tree *rt, uint8_t *kb, uint8_t *ke)
 {
 	struct node **pn;
-	unsigned count;
+	unsigned count = 0;
 
 	pn = _lookup(&rt->root, kb, ke);
 

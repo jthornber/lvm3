@@ -14,12 +14,10 @@
 
 #define _GNU_SOURCE
 
-#include "lib/device/io-manager.h"
+#include "io/io-manager.h"
 
 #include "base/data-struct/radix-tree.h"
-#include "base/data-struct/range-set.h"
-#include "lib/log/lvm-logging.h"
-#include "lib/log/log.h"
+#include "base/log/log.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -452,26 +450,26 @@ static bool _common_get_block_sizes(struct io_engine *e, const char *path, int f
 		log_sys_error("ioctl BLKBSZGET", path);
 		return false;
 	}
-	log_debug_devs("%s: Block size is %u bytes", path, *block_size);
+	log_debug("%s: Block size is %u bytes", path, *block_size);
 
 #ifdef BLKPBSZGET
 	if (ioctl(fd, BLKPBSZGET, physical) < 0) {
 		log_sys_error("ioctl BLKPBSZGET", path);
 		return false;
 	}
-	log_debug_devs("%s: Physical block size is %u bytes", path, *physical);
+	log_debug("%s: Physical block size is %u bytes", path, *physical);
 #elif defined (BLKSSZGET)
 	if (ioctl(fd, BLKSSZGET, physical) < 0) {
 		log_sys_error("ioctl BLKSSZGET", path);
 		return false;
 	}
-	log_debug_devs("%s: Physical block size can't be determined: "
+	log_debug("%s: Physical block size can't be determined: "
                        "Using logical block size of %u bytes", path, physical);
 #else
 	/* if even BLKSSZGET is not available, use default 512b */
 	*physical = 512;
-	log_debug_devs("%s: Physical block size can't be determined: "
-                       "Using block size of %u bytes instead", path, *physical);
+	log_debug("%s: Physical block size can't be determined: "
+                  "Using block size of %u bytes instead", path, *physical);
 #endif
 
 	return true;

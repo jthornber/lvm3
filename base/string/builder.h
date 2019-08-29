@@ -1,6 +1,9 @@
 #ifndef BASE_STRING_BUILDER_H
 #define BASE_STRING_BUILDER_H
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 //----------------------------------------------------------------
 
 struct string_builder {
