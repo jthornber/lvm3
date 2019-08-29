@@ -85,7 +85,7 @@ struct block {
 
 	struct io_manager *iom;
 	struct io_dev_internal *dev;
-	struct dm_list list;
+	struct list list;
 
 	unsigned flags;
 	unsigned ref_count;

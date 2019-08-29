@@ -463,9 +463,9 @@ static struct test_suite *_sync_tests(void)
         return ts;
 }
 
-void io_manager_utils_tests(struct dm_list *all_tests)
+void io_manager_utils_tests(struct list *all_tests)
 {
-	dm_list_add(all_tests, &_async_tests()->list);
-	dm_list_add(all_tests, &_sync_tests()->list);
+	list_add(all_tests, &_async_tests()->list);
+	list_add(all_tests, &_sync_tests()->list);
 }
 

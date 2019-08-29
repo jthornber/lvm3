@@ -58,21 +58,21 @@ enum method {
 };
 
 struct expectation {
-	struct dm_list list;
+	struct list list;
 
 	enum method m;
 	bool succeed;
 };
 
 struct dev {
-	struct dm_list list;
+	struct list list;
 	unsigned id;
 };
 
 struct mock_ops {
 	struct processor_ops ops;
 
-	struct dm_list expectations;
+	struct list expectations;
 	unsigned batch_size;
 };
 
@@ -96,11 +96,11 @@ static struct expectation *_match_pop(struct mock_ops *mops, enum method m)
 {
 	struct expectation *e;
 
-	if (dm_list_empty(&mops->expectations))
+	if (list_empty(&mops->expectations))
 		test_fail("unexpected call to method %s\n", _show_method(m));
 
-	e = dm_list_item(mops->expectations.n, struct expectation);
-	dm_list_del(&e->list);
+	e = list_item(mops->expectations.n, struct expectation);
+	list_del(&e->list);
 
 	if (e->m != m)
 		test_fail("expected %s, but got %s\n", _show_method(e->m), _show_method(m));
@@ -128,8 +128,8 @@ static void _mock_destroy(struct processor_ops *ops)
 	struct expectation *e, *tmp;
 
 	_match(mops, M_DESTROY);
-	if (!dm_list_empty(&mops->expectations)) {
-		dm_list_iterate_items_safe(e, tmp, &mops->expectations)
+	if (!list_empty(&mops->expectations)) {
+		list_iterate_items_safe(e, tmp, &mops->expectations)
 			fprintf(stderr, "   %s", _show_method(e->m));
 
 		test_fail("unsatisfied expectations");
@@ -160,7 +160,7 @@ static void *_mock_get_dev(struct processor_ops *ops, const char *path, unsigned
 	free(e);
 
 	d = zalloc(sizeof(*d));
-	dm_list_init(&d->list);
+	list_init(&d->list);
 	d->id = 0;
 
 	return d;
@@ -205,7 +205,7 @@ static void _expect(struct mock_ops *mops, enum method m)
 
 	e->m = m;
 	e->succeed = true;
-	dm_list_add(&mops->expectations, &e->list);
+	list_add(&mops->expectations, &e->list);
 }
 
 static void _expect_fail(struct mock_ops *mops, enum method m)
@@ -214,7 +214,7 @@ static void _expect_fail(struct mock_ops *mops, enum method m)
 
 	e->m = m;
 	e->succeed = false;
-	dm_list_add(&mops->expectations, &e->list);
+	list_add(&mops->expectations, &e->list);
 }
 
 static struct mock_ops *_mock_ops_create(void)
@@ -228,7 +228,7 @@ static struct mock_ops *_mock_ops_create(void)
 	mops->ops.prefetch_bytes = _mock_prefetch_bytes;
 	mops->ops.read_bytes = _mock_read_bytes;
 
-	dm_list_init(&mops->expectations);
+	list_init(&mops->expectations);
 	mops->batch_size = 1;
 
 	return mops;
@@ -473,9 +473,9 @@ static struct test_suite *_tests(void)
 	return ts;
 }
 
-void io_processor_tests(struct dm_list *all_tests)
+void io_processor_tests(struct list *all_tests)
 {
-	dm_list_add(all_tests, &_tests()->list);
+	list_add(all_tests, &_tests()->list);
 }
 
 //----------------------------------------------------------------

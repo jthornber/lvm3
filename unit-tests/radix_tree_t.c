@@ -812,7 +812,7 @@ static void test_bcache_scenario3(void *fixture)
 //----------------------------------------------------------------
 #define T(path, desc, fn) register_test(ts, "/base/data-struct/radix-tree/" path, desc, fn)
 
-void radix_tree_tests(struct dm_list *all_tests)
+void radix_tree_tests(struct list *all_tests)
 {
 	struct test_suite *ts = test_suite_create(rt_init, rt_exit);
 	if (!ts) {
@@ -846,6 +846,6 @@ void radix_tree_tests(struct dm_list *all_tests)
 	T("bcache-scenario-2", "A second series of keys from a bcache scenario", test_bcache_scenario2);
 	T("bcache-scenario-3", "A third series of keys from a bcache scenario", test_bcache_scenario3);
 
-	dm_list_add(all_tests, &ts->list);
+	list_add(all_tests, &ts->list);
 }
 //----------------------------------------------------------------

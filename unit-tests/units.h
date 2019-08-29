@@ -20,20 +20,20 @@
 //-----------------------------------------------------------------
 
 // Declare the function that adds tests suites here ...
-void dm_list_tests(struct dm_list *suites);
-void io_manager_tests(struct dm_list *suites);
-void io_manager_utils_tests(struct dm_list *suites);
-void io_processor_tests(struct dm_list *suites);
-void radix_tree_tests(struct dm_list *suites);
-void range_set_tests(struct dm_list *suites);
+void list_tests(struct list *suites);
+void io_manager_tests(struct list *suites);
+void io_manager_utils_tests(struct list *suites);
+void io_processor_tests(struct list *suites);
+void radix_tree_tests(struct list *suites);
+void range_set_tests(struct list *suites);
 
 // ... and call it in here.
-static inline void register_all_tests(struct dm_list *suites)
+static inline void register_all_tests(struct list *suites)
 {
 	io_manager_tests(suites);
 	io_manager_utils_tests(suites);
 	io_processor_tests(suites);
-	dm_list_tests(suites);
+	list_tests(suites);
 	radix_tree_tests(suites);
 	range_set_tests(suites);
 }

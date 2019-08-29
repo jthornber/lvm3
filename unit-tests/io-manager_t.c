@@ -33,8 +33,8 @@
  *--------------------------------------------------------------*/
 struct mock_engine {
 	struct io_engine e;
-	struct dm_list expected_calls;
-	struct dm_list issued_io;
+	struct list expected_calls;
+	struct list issued_io;
 	unsigned max_io;
 	sector_t block_size;
 	int last_fd;
@@ -51,7 +51,7 @@ enum method {
 };
 
 struct mock_call {
-	struct dm_list list;
+	struct list list;
 	enum method m;
 
 	bool match_args;
@@ -69,7 +69,7 @@ struct mock_call {
 };
 
 struct mock_io {
-	struct dm_list list;
+	struct list list;
 	int fd;
 	sector_t sb;
 	sector_t se;
@@ -105,7 +105,7 @@ static void _expect(struct mock_engine *e, enum method m)
 	struct mock_call *mc = malloc(sizeof(*mc));
 	mc->m = m;
 	mc->match_args = false;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _set_block(struct mock_engine *e, struct mock_call *c, block_address b)
@@ -124,7 +124,7 @@ static void _expect_read(struct mock_engine *e, struct io_dev *dev, block_addres
 	_set_block(e, mc, b);
 	mc->issue_r = true;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_read_any(struct mock_engine *e)
@@ -134,7 +134,7 @@ static void _expect_read_any(struct mock_engine *e)
 	mc->match_args = false;
 	mc->issue_r = true;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_write(struct mock_engine *e, struct io_dev *dev, block_address b)
@@ -148,7 +148,7 @@ static void _expect_write(struct mock_engine *e, struct io_dev *dev, block_addre
 	mc->se = mc->sb + e->block_size;
 	mc->issue_r = true;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_partial_write(struct mock_engine *e,
@@ -164,7 +164,7 @@ static void _expect_partial_write(struct mock_engine *e,
 	mc->se = se;
 	mc->issue_r = true;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_partial_write_bad_issue(struct mock_engine *e,
@@ -180,7 +180,7 @@ static void _expect_partial_write_bad_issue(struct mock_engine *e,
 	mc->se = se;
 	mc->issue_r = false;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_partial_write_bad_wait(struct mock_engine *e,
@@ -196,7 +196,7 @@ static void _expect_partial_write_bad_wait(struct mock_engine *e,
 	mc->se = se;
 	mc->issue_r = true;
 	mc->wait_r = false;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_read_bad_issue(struct mock_engine *e, struct io_dev *dev, block_address b)
@@ -209,7 +209,7 @@ static void _expect_read_bad_issue(struct mock_engine *e, struct io_dev *dev, bl
 	_set_block(e, mc, b);
 	mc->issue_r = false;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_write_bad_issue(struct mock_engine *e, struct io_dev *dev, block_address b)
@@ -222,7 +222,7 @@ static void _expect_write_bad_issue(struct mock_engine *e, struct io_dev *dev, b
 	_set_block(e, mc, b);
 	mc->issue_r = false;
 	mc->wait_r = true;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_read_bad_wait(struct mock_engine *e, struct io_dev *dev, block_address b)
@@ -235,7 +235,7 @@ static void _expect_read_bad_wait(struct mock_engine *e, struct io_dev *dev, blo
 	_set_block(e, mc, b);
 	mc->issue_r = true;
 	mc->wait_r = false;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_write_bad_wait(struct mock_engine *e, struct io_dev *dev, block_address b)
@@ -248,7 +248,7 @@ static void _expect_write_bad_wait(struct mock_engine *e, struct io_dev *dev, bl
 	_set_block(e, mc, b);
 	mc->issue_r = true;
 	mc->wait_r = false;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_open(struct mock_engine *e, unsigned eflags)
@@ -257,7 +257,7 @@ static void _expect_open(struct mock_engine *e, unsigned eflags)
 	mc->m = E_OPEN;
 	mc->match_args = true;
 	mc->engine_flags = eflags;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_get_size(struct mock_engine *e, struct io_dev *dev, uint64_t s)
@@ -268,7 +268,7 @@ static void _expect_get_size(struct mock_engine *e, struct io_dev *dev, uint64_t
 	mc->fail = true;
 	mc->fd = io_get_fd(dev);
 	mc->size = s;
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static void _expect_get_size_fail(struct mock_engine *e, struct io_dev *dev)
@@ -278,7 +278,7 @@ static void _expect_get_size_fail(struct mock_engine *e, struct io_dev *dev)
 	mc->match_args = true;
 	mc->fail = false;
 	mc->fd = io_get_fd(dev);
-	dm_list_add(&e->expected_calls, &mc->list);
+	list_add(&e->expected_calls, &mc->list);
 }
 
 static struct mock_call *_match_pop(struct mock_engine *e, enum method m)
@@ -286,11 +286,11 @@ static struct mock_call *_match_pop(struct mock_engine *e, enum method m)
 
 	struct mock_call *mc;
 
-	if (dm_list_empty(&e->expected_calls))
+	if (list_empty(&e->expected_calls))
 		test_fail("unexpected call to method %s\n", _show_method(m));
 
-	mc = dm_list_item(e->expected_calls.n, struct mock_call);
-	dm_list_del(&mc->list);
+	mc = list_item(e->expected_calls.n, struct mock_call);
+	list_del(&mc->list);
 
 	if (mc->m != m)
 		test_fail("expected %s, but got %s\n", _show_method(mc->m), _show_method(m));
@@ -311,12 +311,12 @@ static void _no_outstanding_expectations(struct mock_engine *e)
 {
 	struct mock_call *mc;
 
-	if (!dm_list_empty(&e->expected_calls)) {
+	if (!list_empty(&e->expected_calls)) {
 		fprintf(stderr, "unsatisfied expectations:\n");
-		dm_list_iterate_items (mc, &e->expected_calls)
+		list_iterate_items (mc, &e->expected_calls)
 			fprintf(stderr, "  %s\n", _show_method(mc->m));
 	}
-	T_ASSERT(dm_list_empty(&e->expected_calls));
+	T_ASSERT(list_empty(&e->expected_calls));
 }
 
 static struct mock_engine *_to_mock(struct io_engine *e)
@@ -329,8 +329,8 @@ static void _mock_destroy(struct io_engine *e)
 	struct mock_engine *me = _to_mock(e);
 
 	_match(me, E_DESTROY);
-	T_ASSERT(dm_list_empty(&me->issued_io));
-	T_ASSERT(dm_list_empty(&me->expected_calls));
+	T_ASSERT(list_empty(&me->issued_io));
+	T_ASSERT(list_empty(&me->expected_calls));
 	free(_to_mock(e));
 }
 
@@ -386,7 +386,7 @@ static bool _mock_issue(struct io_engine *e, enum dir d, int fd,
 		io->context = context;
 		io->r = wait_r;
 
-		dm_list_add(&me->issued_io, &io->list);
+		list_add(&me->issued_io, &io->list);
 	}
 
 	return r;
@@ -400,9 +400,9 @@ static bool _mock_wait(struct io_engine *e, io_complete_fn fn)
 
 	// FIXME: provide a way to control how many are completed and whether
 	// they error.
-	T_ASSERT(!dm_list_empty(&me->issued_io));
-	io = dm_list_item(me->issued_io.n, struct mock_io);
-	dm_list_del(&io->list);
+	T_ASSERT(!list_empty(&me->issued_io));
+	io = list_item(me->issued_io.n, struct mock_io);
+	list_del(&io->list);
 	fn(io->context, io->r ? 0 : -EIO);
 	free(io);
 
@@ -444,8 +444,8 @@ static struct mock_engine *_mock_create(unsigned max_io, sector_t block_size)
 
 	m->max_io = max_io;
 	m->block_size = block_size;
-	dm_list_init(&m->expected_calls);
-	dm_list_init(&m->issued_io);
+	list_init(&m->expected_calls);
+	list_init(&m->issued_io);
 	m->last_fd = 2;
 
 	return m;
@@ -2066,9 +2066,9 @@ static struct test_suite *_large_tests(void)
 	return ts;
 }
 
-void io_manager_tests(struct dm_list *all_tests)
+void io_manager_tests(struct list *all_tests)
 {
-        dm_list_add(all_tests, &_tiny_tests()->list);
-	dm_list_add(all_tests, &_small_tests()->list);
-	dm_list_add(all_tests, &_large_tests()->list);
+        list_add(all_tests, &_tiny_tests()->list);
+	list_add(all_tests, &_small_tests()->list);
+	list_add(all_tests, &_large_tests()->list);
 }

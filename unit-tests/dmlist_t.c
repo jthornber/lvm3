@@ -22,24 +22,24 @@
 static void test_dmlist_splice(void *fixture)
 {
 	unsigned i;
-	struct dm_list a[10];
-	struct dm_list list1;
-	struct dm_list list2;
+	struct list a[10];
+	struct list list1;
+	struct list list2;
 
-	dm_list_init(&list1);
-	dm_list_init(&list2);
+	list_init(&list1);
+	list_init(&list2);
 
 	for (i = 0; i < ARRAY_SIZE(a); i++)
-		dm_list_add(&list1, &a[i]);
+		list_add(&list1, &a[i]);
 
-	dm_list_splice(&list2, &list1);
-	T_ASSERT(dm_list_size(&list1) == 0);
-	T_ASSERT(dm_list_size(&list2) == 10);
+	list_splice(&list2, &list1);
+	T_ASSERT(list_size(&list1) == 0);
+	T_ASSERT(list_size(&list2) == 10);
 }
 
 #define T(path, desc, fn) register_test(ts, "/base/data-struct/list/" path, desc, fn)
 
-void dm_list_tests(struct dm_list *all_tests)
+void list_tests(struct list *all_tests)
 {
 	struct test_suite *ts = test_suite_create(NULL, NULL);
 	if (!ts) {
@@ -49,5 +49,5 @@ void dm_list_tests(struct dm_list *all_tests)
 
 	T("splice", "joining lists together", test_dmlist_splice);
 
-	dm_list_add(all_tests, &ts->list);
+	list_add(all_tests, &ts->list);
 }

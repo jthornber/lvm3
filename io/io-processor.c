@@ -23,7 +23,7 @@
 //----------------------------------------------------------------
 
 struct job {
-	struct dm_list list;
+	struct list list;
 
 	char *path;
 	uint64_t start;
@@ -35,7 +35,7 @@ struct io_processor {
 	struct processor_ops *ops;
 	io_task_fn task;
 	io_error_fn err;
-	struct dm_list jobs;
+	struct list jobs;
 
 	size_t buffer_size;
 	void *buffer;
@@ -56,7 +56,7 @@ struct io_processor *io_processor_create_internal(struct processor_ops *ops,
 		iop->ops= ops;
 		iop->task = t;
 		iop->err = err;
-		dm_list_init(&iop->jobs);
+		list_init(&iop->jobs);
 	}
 
 	return iop;
@@ -68,7 +68,7 @@ void io_processor_destroy(struct io_processor *iop)
 
 	iop->ops->destroy(iop->ops);
 
-	dm_list_iterate_items_safe(j, tmp, &iop->jobs)
+	list_iterate_items_safe(j, tmp, &iop->jobs)
 		_free_job(j);
 
 	free(iop->buffer);
@@ -123,14 +123,14 @@ bool io_processor_add(struct io_processor *iop, const char *path,
 		return false;
 	}
 
-	dm_list_add(&iop->jobs, &j->list);
+	list_add(&iop->jobs, &j->list);
 	return true;
 }
 
 static void _fail_job(struct io_processor *iop, struct job *j)
 {
 	iop->err(j->context);
-	dm_list_del(&j->list);
+	list_del(&j->list);
 	_free_job(j);
 }
 
@@ -149,13 +149,13 @@ static void _batch(struct io_processor *iop, unsigned count)
 {
 	unsigned blocks_covered;
 	struct job *j, *tmp;
-	struct dm_list batch;
+	struct list batch;
 	void *dev;
 
-	dm_list_init(&batch);
+	list_init(&batch);
 
 	// prefetch
-	dm_list_iterate_items_safe(j, tmp, &iop->jobs) {
+	list_iterate_items_safe(j, tmp, &iop->jobs) {
 		if (!count)
 			break;
 
@@ -169,11 +169,11 @@ static void _batch(struct io_processor *iop, unsigned count)
 		iop->ops->put_dev(iop->ops, dev);
 
 		count -= min(count, blocks_covered);
-		dm_list_move(&batch, &j->list);
+		list_move(&batch, &j->list);
 	}
 
 	// read
-	dm_list_iterate_items_safe(j, tmp, &batch) {
+	list_iterate_items_safe(j, tmp, &batch) {
 		dev = iop->ops->get_dev(iop->ops, j->path, EF_READ_ONLY);
 		if (!dev) {
 			_fail_job(iop, j);
@@ -189,7 +189,7 @@ static void _batch(struct io_processor *iop, unsigned count)
 		iop->ops->put_dev(iop->ops, dev);
 
 		iop->task(j->context, iop->buffer, j->len);
-		dm_list_del(&j->list);
+		list_del(&j->list);
 		_free_job(j);
 	}
 }
@@ -198,7 +198,7 @@ void io_processor_exec(struct io_processor *iop)
 {
 	unsigned batch_size = iop->ops->batch_size(iop->ops);
 
-	while (!dm_list_empty(&iop->jobs))
+	while (!list_empty(&iop->jobs))
 		_batch(iop, batch_size);
 }
 

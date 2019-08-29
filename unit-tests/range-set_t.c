@@ -169,7 +169,7 @@ static void test_overlapping_ranges(void *fixture)
 
 #define T(path, desc, fn) register_test(ts, "/base/data-struct/range-set/" path, desc, fn)
 
-void range_set_tests(struct dm_list *all_tests)
+void range_set_tests(struct list *all_tests)
 {
 	struct test_suite *ts = test_suite_create(rs_init, rs_exit);
 	if (!ts) {
@@ -185,6 +185,6 @@ void range_set_tests(struct dm_list *all_tests)
 	T("multiple-ranges", "many ranges can be supported", test_multiple_ranges);
 	T("overlapping-ranges", "overlapping ranges do the right thing", test_overlapping_ranges);
 
-	dm_list_add(all_tests, &ts->list);
+	list_add(all_tests, &ts->list);
 }
 //----------------------------------------------------------------

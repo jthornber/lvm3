@@ -11,16 +11,16 @@
 
 // A test suite gathers a set of tests with a common fixture together.
 struct test_suite {
-	struct dm_list list;
+	struct list list;
 
 	void *(*fixture_init)(void);
 	void (*fixture_exit)(void *);
-	struct dm_list tests;
+	struct list tests;
 };
 
 struct test_details {
 	struct test_suite *parent;
-	struct dm_list list;
+	struct list list;
 
 	const char *path;
 	const char *desc;

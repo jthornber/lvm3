@@ -45,26 +45,26 @@ static void log_sys_warn(const char *call)
 }
 
 // Assumes the list is not empty.
-static inline struct dm_list *_list_pop(struct dm_list *head)
+static inline struct list*_list_pop(struct list*head)
 {
-	struct dm_list *l;
+	struct list*l;
 
 	l = head->n;
-	dm_list_del(l);
+	list_del(l);
 	return l;
 }
 
 //----------------------------------------------------------------
 
 struct control_block {
-	struct dm_list list;
+	struct list list;
 	void *context;
 	struct iocb cb;
 };
 
 struct cb_set {
-	struct dm_list free;
-	struct dm_list allocated;
+	struct list free;
+	struct list allocated;
 	struct control_block *vec;
 } control_block_set;
 
@@ -82,11 +82,11 @@ static struct cb_set *_cb_set_create(unsigned nr)
 		return NULL;
 	}
 
-	dm_list_init(&cbs->free);
-	dm_list_init(&cbs->allocated);
+	list_init(&cbs->free);
+	list_init(&cbs->allocated);
 
 	for (i = 0; i < nr; i++)
-		dm_list_add(&cbs->free, &cbs->vec[i].list);
+		list_add(&cbs->free, &cbs->vec[i].list);
 
 	return cbs;
 }
@@ -95,7 +95,7 @@ static void _cb_set_destroy(struct cb_set *cbs)
 {
 	// We know this is always called after a wait_all.  So there should
 	// never be in flight IO.
-	if (!dm_list_empty(&cbs->allocated)) {
+	if (!list_empty(&cbs->allocated)) {
 		// bail out
 		log_error("async io still in flight");
 		return;
@@ -109,25 +109,25 @@ static struct control_block *_cb_alloc(struct cb_set *cbs, void *context)
 {
 	struct control_block *cb;
 
-	if (dm_list_empty(&cbs->free))
+	if (list_empty(&cbs->free))
 		return NULL;
 
-	cb = dm_list_item(_list_pop(&cbs->free), struct control_block);
+	cb = list_item(_list_pop(&cbs->free), struct control_block);
 	cb->context = context;
-	dm_list_add(&cbs->allocated, &cb->list);
+	list_add(&cbs->allocated, &cb->list);
 
 	return cb;
 }
 
 static void _cb_free(struct cb_set *cbs, struct control_block *cb)
 {
-	dm_list_del(&cb->list);
-	dm_list_add_h(&cbs->free, &cb->list);
+	list_del(&cb->list);
+	list_add_h(&cbs->free, &cb->list);
 }
 
 static struct control_block *_iocb_to_cb(struct iocb *icb)
 {
-	return dm_list_struct_base(icb, struct control_block, cb);
+	return list_struct_base(icb, struct control_block, cb);
 }
 
 //----------------------------------------------------------------
@@ -139,13 +139,13 @@ struct async_engine {
 	unsigned page_mask;
 	unsigned page_sector_mask;
 	bool use_o_direct;
-	struct dm_list completed_fallbacks;
+	struct list completed_fallbacks;
 };
 
 // Not all io can be issued asynchronously because of bad alignment
 // so we need a fallback synchronous method.
 struct completed_fallback {
-	struct dm_list list;
+	struct list list;
 	void *context;
 };
 
@@ -270,7 +270,7 @@ static bool _fallback_issue(struct async_engine *ae, enum dir d, int fd,
 		return false;
 	}
 
-	dm_list_add(&ae->completed_fallbacks, &io->list);
+	list_add(&ae->completed_fallbacks, &io->list);
 	io->context = context;
 
 	return true;
@@ -334,7 +334,7 @@ static bool _async_issue_ignore_writes(struct io_engine *ioe, enum dir d, int fd
 		}
 
 		cw->context = context;
-		dm_list_add(&e->completed_fallbacks, &cw->list);
+		list_add(&e->completed_fallbacks, &cw->list);
 
 		return true;
 	} else
@@ -393,8 +393,8 @@ static bool _async_wait(struct io_engine *ioe, io_complete_fn fn)
 	struct completed_fallback *cw, *tmp;
 	bool r = false;
 
-	dm_list_iterate_items_safe(cw, tmp, &e->completed_fallbacks) {
-		dm_list_del(&cw->list);
+	list_iterate_items_safe(cw, tmp, &e->completed_fallbacks) {
+		list_del(&cw->list);
 		fn(cw->context, 0);
 		free(cw);
 		r = true;
@@ -510,7 +510,7 @@ struct io_engine *create_async_io_engine(bool use_o_direct)
 	e->page_mask = sysconf(_SC_PAGESIZE) - 1;
 	e->page_sector_mask = (sysconf(_SC_PAGESIZE) / 512) - 1;
 	e->use_o_direct = use_o_direct;
-	dm_list_init(&e->completed_fallbacks);
+	list_init(&e->completed_fallbacks);
 
 	return &e->e;
 }
@@ -530,13 +530,13 @@ struct io_engine *create_test_io_engine(bool use_o_direct)
 //----------------------------------------------------------------
 
 struct sync_io {
-	struct dm_list list;
+	struct list list;
 	void *context;
 };
 
 struct sync_engine {
 	struct io_engine e;
-	struct dm_list complete;
+	struct list complete;
 	bool use_o_direct;
 };
 
@@ -613,7 +613,7 @@ static bool _sync_issue(struct io_engine *ioe, enum dir d, int fd,
 		return false;
 	}
 
-	dm_list_add(&e->complete, &io->list);
+	list_add(&e->complete, &io->list);
 	io->context = context;
 
 	return true;
@@ -624,9 +624,9 @@ static bool _sync_wait(struct io_engine *ioe, io_complete_fn fn)
 	struct sync_io *io, *tmp;
 	struct sync_engine *e = _to_sync(ioe);
 
-	dm_list_iterate_items_safe(io, tmp, &e->complete) {
+	list_iterate_items_safe(io, tmp, &e->complete) {
 		fn(io->context, 0);
-		dm_list_del(&io->list);
+		list_del(&io->list);
 		free(io);
 	}
 
@@ -655,7 +655,7 @@ struct io_engine *create_sync_io_engine(bool use_o_direct)
 	e->e.get_block_sizes = _common_get_block_sizes;
 	e->use_o_direct = use_o_direct;
 
-	dm_list_init(&e->complete);
+	list_init(&e->complete);
 	return &e->e;
 }
 
@@ -735,7 +735,7 @@ struct io_dev_internal {
 	unsigned physical_block_size;
 	unsigned block_size;
 
-	struct dm_list lru;
+	struct list lru;
 };
 
 struct io_manager {
@@ -767,11 +767,11 @@ struct io_manager {
 	// nr of ios issued.
 	unsigned nr_io_pending;
 
-	struct dm_list free;
-	struct dm_list errored;
-	struct dm_list dirty;
-	struct dm_list clean;
-	struct dm_list io_pending;
+	struct list free;
+	struct list errored;
+	struct list dirty;
+	struct list clean;
+	struct list io_pending;
 
 	struct radix_tree *rtree;
 
@@ -786,7 +786,7 @@ struct io_manager {
 	unsigned prefetches;
 
 	struct radix_tree *dev_tree;
-	struct dm_list dev_lru;
+	struct list dev_lru;
 };
 
 //----------------------------------------------------------------
@@ -808,7 +808,7 @@ static void _free_dev(struct io_manager *iom, struct io_dev_internal *dev)
 	assert(!dev->blocks);
 	iom->engine->close(iom->engine, dev->fd);
 	_dec_nr_open(iom);
-	dm_list_del(&dev->lru);
+	list_del(&dev->lru);
 	free(dev->path);
 	free(dev);
 }
@@ -892,7 +892,7 @@ static void _evict_lru_dev(struct io_manager *iom)
 	struct io_dev_internal *dev;
 
 	// We need to find the least recently used device, that isn't held.
-	dm_list_iterate_items_gen(dev, &iom->dev_lru, lru) {
+	list_iterate_items_gen(dev, &iom->dev_lru, lru) {
 		if (!dev->holders) {
 			// we have a winner
 			_invalidate_dev(iom, dev);
@@ -947,7 +947,7 @@ static struct io_dev_internal *_new_dev(struct io_manager *iom,
 		free(dev);
 		dev = NULL;
 	} else {
-		dm_list_add(&iom->dev_lru, &dev->lru);
+		list_add(&iom->dev_lru, &dev->lru);
 		_inc_nr_open(iom);
 	}
 
@@ -1038,8 +1038,8 @@ static struct io_dev_internal *_get_dev(struct io_manager *iom,
 	if (radix_tree_lookup(iom->dev_tree, (uint8_t *) path, (uint8_t *) (path + strlen(path)), &v)) {
 		dev = v.ptr;
 		_inc_holders(dev);
-		dm_list_del(&dev->lru);
-		dm_list_add(&iom->dev_lru, &dev->lru);
+		list_del(&dev->lru);
+		list_add(&iom->dev_lru, &dev->lru);
 
 		if (_need_upgrade_dev(dev, flags))
 			dev = _upgrade_dev(iom, path, dev, flags);
@@ -1147,7 +1147,7 @@ static bool _init_free_list(struct io_manager *iom, unsigned count, unsigned pgs
 		struct block *b = iom->raw_blocks + i;
 		b->iom = iom;
 		b->data = data + (block_size * i);
-		dm_list_add(&iom->free, &b->list);
+		list_add(&iom->free, &b->list);
 	}
 
 	return true;
@@ -1161,15 +1161,15 @@ static void _exit_free_list(struct io_manager *iom)
 
 static struct block *_alloc_block(struct io_manager *iom)
 {
-	if (dm_list_empty(&iom->free))
+	if (list_empty(&iom->free))
 		return NULL;
 
-	return dm_list_struct_base(_list_pop(&iom->free), struct block, list);
+	return list_struct_base(_list_pop(&iom->free), struct block, list);
 }
 
 static void _free_block(struct block *b)
 {
-	dm_list_add(&b->iom->free, &b->list);
+	list_add(&b->iom->free, &b->list);
 }
 
 /*----------------------------------------------------------------
@@ -1182,7 +1182,7 @@ static void _unlink_block(struct block *b)
 	if (b->dirty_bits)
 		b->iom->nr_dirty--;
 
-	dm_list_del(&b->list);
+	list_del(&b->list);
 }
 
 static void _link_block(struct block *b)
@@ -1190,10 +1190,10 @@ static void _link_block(struct block *b)
 	struct io_manager *iom = b->iom;
 
 	if (b->dirty_bits) {
-		dm_list_add(&iom->dirty, &b->list);
+		list_add(&iom->dirty, &b->list);
 		iom->nr_dirty++;
 	} else
-		dm_list_add(&iom->clean, &b->list);
+		list_add(&iom->clean, &b->list);
 }
 
 static void _relink(struct block *b)
@@ -1232,10 +1232,10 @@ static void _complete_io(void *context, int err)
 
 		// b is on the io_pending list, so we don't want to use
 		// unlink_block.  Which would incorrectly adjust nr_dirty.
-		dm_list_del(&b->list);
+		list_del(&b->list);
 
 		if (b->error) {
-			dm_list_add(&iom->errored, &b->list);
+			list_add(&iom->errored, &b->list);
 
 		} else {
 			b->dirty_bits = 0;
@@ -1303,7 +1303,7 @@ static void _issue(struct block *b, enum dir d)
 	b->io_dir = d;
 	_set_flags(b, BF_IO_PENDING);
 	iom->nr_io_pending++;
-	dm_list_move(&iom->io_pending, &b->list);
+	list_move(&iom->io_pending, &b->list);
 
 	if ((d == DIR_WRITE) && (b->dirty_bits != iom->block_mask))
 		_issue_partial_write(b);
@@ -1333,7 +1333,7 @@ static bool _wait_io(struct io_manager *iom)
 
 static void _wait_all(struct io_manager *iom)
 {
-	while (!dm_list_empty(&iom->io_pending))
+	while (!list_empty(&iom->io_pending))
 		_wait_io(iom);
 }
 
@@ -1348,7 +1348,7 @@ static unsigned _writeback(struct io_manager *iom, unsigned count)
 	unsigned actual = 0;
 	struct block *b, *tmp;
 
-	dm_list_iterate_items_gen_safe (b, tmp, &iom->dirty, list) {
+	list_iterate_items_gen_safe (b, tmp, &iom->dirty, list) {
 		if (actual == count)
 			break;
 
@@ -1370,7 +1370,7 @@ static struct block *_find_unused_clean_block(struct io_manager *iom)
 {
 	struct block *b;
 
-	dm_list_iterate_items (b, &iom->clean) {
+	list_iterate_items (b, &iom->clean) {
 		if (!b->ref_count) {
 			_unlink_block(b);
 			_block_remove(b);
@@ -1389,11 +1389,11 @@ static struct block *_new_block(struct io_manager *iom, struct io_dev_internal *
 	b = _alloc_block(iom);
 
 	// FIXME: if there are no clean we should just writeback
-	while (!b && !dm_list_empty(&iom->clean)) {
+	while (!b && !list_empty(&iom->clean)) {
 		b = _find_unused_clean_block(iom);
 		if (!b) {
 			if (can_wait) {
-				if (dm_list_empty(&iom->io_pending))
+				if (list_empty(&iom->io_pending))
 					_writeback(iom, 16);  // FIXME: magic number
 				_wait_io(iom);
 			} else {
@@ -1405,7 +1405,7 @@ static struct block *_new_block(struct io_manager *iom, struct io_dev_internal *
 	}
 
 	if (b) {
-		dm_list_init(&b->list);
+		list_init(&b->list);
 		b->flags = 0;
 		b->dev = dev;
 		b->index = i;
@@ -1615,11 +1615,11 @@ struct io_manager *io_manager_create(sector_t block_sectors, unsigned nr_cache_b
 	iom->nr_dirty = 0;
 	iom->nr_io_pending = 0;
 
-	dm_list_init(&iom->free);
-	dm_list_init(&iom->errored);
-	dm_list_init(&iom->dirty);
-	dm_list_init(&iom->clean);
-	dm_list_init(&iom->io_pending);
+	list_init(&iom->free);
+	list_init(&iom->errored);
+	list_init(&iom->dirty);
+	list_init(&iom->clean);
+	list_init(&iom->io_pending);
 
 	iom->rtree = radix_tree_create(_block_dtr, iom);
 	if (!iom->rtree) {
@@ -1650,7 +1650,7 @@ struct io_manager *io_manager_create(sector_t block_sectors, unsigned nr_cache_b
 		free(iom);
 		return NULL;
 	}
-	dm_list_init(&iom->dev_lru);
+	list_init(&iom->dev_lru);
 
 	return iom;
 }
@@ -1830,10 +1830,10 @@ bool io_flush(struct io_manager *iom)
 	// Only dirty data is on the errored list, since bad read blocks get
 	// recycled straight away.  So we put these back on the dirty list, and
 	// try and rewrite everything.
-	dm_list_splice(&iom->dirty, &iom->errored);
+	list_splice(&iom->dirty, &iom->errored);
 
-	while (!dm_list_empty(&iom->dirty)) {
-		struct block *b = dm_list_item(_list_pop(&iom->dirty), struct block);
+	while (!list_empty(&iom->dirty)) {
+		struct block *b = list_item(_list_pop(&iom->dirty), struct block);
 		if (b->ref_count || _test_flags(b, BF_IO_PENDING)) {
 			// The superblock may well be still locked.
 			continue;
@@ -1844,7 +1844,7 @@ bool io_flush(struct io_manager *iom)
 
 	_wait_all(iom);
 
-	return dm_list_empty(&iom->errored);
+	return list_empty(&iom->errored);
 }
 
 //----------------------------------------------------------------

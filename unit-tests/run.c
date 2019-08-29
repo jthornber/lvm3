@@ -154,11 +154,11 @@ static void _list_tests(struct test_details **tests, unsigned nr)
 	}
 }
 
-static void _destroy_tests(struct dm_list *suites)
+static void _destroy_tests(struct list *suites)
 {
 	struct test_suite *ts, *tmp;
 
-	dm_list_iterate_items_safe (ts, tmp, suites)
+	list_iterate_items_safe (ts, tmp, suites)
 		test_suite_destroy(ts);
 }
 
@@ -253,15 +253,15 @@ int main(int argc, char **argv)
 	unsigned i, nr_tests;
 	struct test_suite *ts;
 	struct test_details *t, **t_array;
-	struct dm_list suites;
+	struct list suites;
 
-	dm_list_init(&suites);
+	list_init(&suites);
 	register_all_tests(&suites);
 
 	// count all tests
 	nr_tests = 0;
-	dm_list_iterate_items (ts, &suites)
-		dm_list_iterate_items (t, &ts->tests)
+	list_iterate_items (ts, &suites)
+		list_iterate_items (t, &ts->tests)
 			nr_tests++;
 
 	// stick them in an array
@@ -272,8 +272,8 @@ int main(int argc, char **argv)
 	}
 
 	i = 0;
-	dm_list_iterate_items (ts, &suites)
-		dm_list_iterate_items (t, &ts->tests)
+	list_iterate_items (ts, &suites)
+		list_iterate_items (t, &ts->tests)
 			t_array[i++] = t;
 
 	// filter

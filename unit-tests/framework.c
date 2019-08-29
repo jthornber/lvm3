@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /*----------------------------------------------------------------
  * Assertions
@@ -29,7 +30,7 @@ struct test_suite *test_suite_create(void *(*fixture_init)(void),
 	if (ts) {
 		ts->fixture_init = fixture_init;
 		ts->fixture_exit = fixture_exit;
-		dm_list_init(&ts->tests);
+		list_init(&ts->tests);
 	}
 
 	return ts;
@@ -39,8 +40,8 @@ void test_suite_destroy(struct test_suite *ts)
 {
 	struct test_details *td, *tmp;
 
-	dm_list_iterate_items_safe (td, tmp, &ts->tests) {
-		dm_list_del(&td->list);
+	list_iterate_items_safe (td, tmp, &ts->tests) {
+		list_del(&td->list);
 		free(td);
 	}
 
@@ -61,7 +62,7 @@ bool register_test(struct test_suite *ts,
 	t->path = path;
 	t->desc = desc;
 	t->fn = fn;
-	dm_list_add(&ts->tests, &t->list);
+	list_add(&ts->tests, &t->list);
 
 	return true;
 }
