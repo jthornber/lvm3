@@ -24,12 +24,6 @@
 
 /*----------------------------------------------------------------*/
 
-// FIXME: move somewhere more sensible
-#define container_of(v, t, head) \
-    ((t *)((const char *)(v) - (const char *)&((t *) 0)->head))
-
-/*----------------------------------------------------------------*/
-
 enum dir {
 	DIR_READ = 1,
 	DIR_WRITE = 2

@@ -15,6 +15,7 @@
 #include "io/io-processor.h"
 
 #include "base/data-struct/list.h"
+#include "base/memory/container_of.h"
 #include "base/memory/zalloc.h"
 #include "base/log/log.h"
 

@@ -18,6 +18,7 @@
 
 #include "base/data-struct/radix-tree.h"
 #include "base/log/log.h"
+#include "base/memory/container_of.h"
 
 #include <assert.h>
 #include <errno.h>

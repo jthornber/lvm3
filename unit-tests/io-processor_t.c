@@ -17,6 +17,7 @@
 #include "framework.h"
 #include "units.h"
 
+#include "base/memory/container_of.h"
 #include "base/memory/zalloc.h"
 
 #include <stdio.h>

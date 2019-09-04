@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "base/memory/array-size.h"
+#include "base/memory/container_of.h"
 #include "io/io-manager.h"
 #include "framework.h"
 #include "units.h"
