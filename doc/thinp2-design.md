@@ -39,7 +39,7 @@ sharing.
 
 
 
-* Thinp 2
+# Thinp 2
 
 We must keep metadata sharing at the mapping tree level.  Sharing of
 device details btree and the top level 'metadata snapshot' will go.

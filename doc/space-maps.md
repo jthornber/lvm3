@@ -4,7 +4,7 @@
 
 These hold reference counts for blocks, and act as allocators.
 
-** Metadata space map
+## Metadata space map
 
 A 16Gb metadata area is 2^22 4k pages (~4 million).  At 32bits per
 ref count this is just 16MB of disk space/ram.
@@ -17,7 +17,7 @@ Probably best to stick with the current scheme of 2 bit counts in an
 array, and a sparse btree for the higher counts.
 
 
-** Data space map
+## Data space map
 
 This needs to be much smarter than the space map in thinp1, since
 it needs to:

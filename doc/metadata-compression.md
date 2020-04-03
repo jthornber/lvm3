@@ -1,4 +1,4 @@
-* Metadata compression
+# Metadata compression
 
 One of the bigger issues we have is with the size of the mapping trees.  These
 are currently held as BTrees that map:
@@ -10,7 +10,7 @@ tanks if those pages are not in memory when we need to do a lookup.
 
 Some of our customers are hitting the 16GB metadata limit.
 
-** Run length encoding
+## Run length encoding
 
 Estimated 10x metadata compression.
 
@@ -19,7 +19,7 @@ always using a 4k chunk size.  This is a big win because atm the user
 is forced to choose between a chunk size suitable for snapshots, or
 suitable for thin provisioning quickly.
 
-** BTree node compression
+## BTree node compression
 
 Assuming run length encoding is used, our btrees need to store a
 mapping:
@@ -29,7 +29,7 @@ mapping:
 Using the techniques discussed below I estimate thinp2 btrees will
 take up a 40th of the space of thinp1.
 
-*** Too much node splitting
+### Too much node splitting
 
 In thinp1 a btree node can hold up to ~250 entries.  The ratio of actual
 entries / max entries contained in a node is known as it's residency.
@@ -44,7 +44,7 @@ in thinp1.
 See *batch insertion* for more info.
 
  
-*** Internal nodes
+### Internal nodes
 
   - Common prefix.  If all the keys in an internal node share a common prefix
     we can record that prefix once, and remove it from the front of all the
@@ -94,7 +94,7 @@ With compression there will be very few internal nodes compared to leaf
 nodes, so we should consider preloading and locking them in memory.
 
 
-*** Leaf nodes
+### Leaf nodes
 
 For leaf nodes the value are larger (~18 bytes), potentially leading to
 as few as 188 per node.  These are range entries, so we need to store

@@ -1,4 +1,4 @@
-*** Batch insertion
+# Batch insertion
 
 Batch inserting entries into a btree can result in much better btrees
 than when you insert in random order (or whatever your IO pattern is).
