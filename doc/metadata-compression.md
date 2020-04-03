@@ -56,20 +56,20 @@ See *batch insertion* for more info.
 
 eg,  Say we have the following keys in an internal node:
 
-	0x123a10303945
-        0x123a99845300
-        0x123b90293842
-        0x123f09384354
+    > 0x123a10303945
+    > 0x123a99845300
+    > 0x123b90293842
+    > 0x123f09384354
 
 Then we can store 0x123 in the header (common prefix), and just use the
 first two bytes of the remainder as a significant prefix.
 
 So the keys become:
 
-	0xa1
-	0xa9
-	0xb9
-	0xf0
+    > 0xa1
+    > 0xa9
+    > 0xb9
+    > 0xf0
 
   - Per node Variable value sizes
 
@@ -108,15 +108,15 @@ more entries in.
 
      Instead of our node looking like:
  
-       +--------+------+--------+
-       | header | keys | values |
-       +--------+------+--------+
+     >  +--------+------+--------+
+     >  | header | keys | values |
+     >  +--------+------+--------+
 
      It would be:
 
-       +--------+------+------------+--------+
-       | header | keys | value ptrs | values |
-       +--------+------+------------+--------+
+     >  +--------+------+------------+--------+
+     >  | header | keys | value ptrs | values |
+     >  +--------+------+------------+--------+
 
     The value ptrs need to address fewer than 4096 bytes, so we'd probably
     use a u16, and use extra bits to encode the type of the value.
