@@ -122,9 +122,9 @@ more entries in.
     use a u16, and use extra bits to encode the type of the value.
     Example value types:
 
-       ORIGIN64_LEN32_TIME8
-       ORIGIN32_LEN16_TIME0
-       ... etc.
+    > ORIGIN64_LEN32_TIME8
+    > ORIGIN32_LEN16_TIME0
+    > ... etc.
 
     Another way of encoding the values would be to put a reference value
     for the origin, len and time into the node header, and then store
