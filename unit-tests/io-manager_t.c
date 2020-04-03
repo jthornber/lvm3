@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "base/math/rounding.h"
 #include "base/memory/array-size.h"
 #include "base/memory/container_of.h"
 #include "io/io-manager.h"
@@ -1658,16 +1659,6 @@ static void test_zero_bytes_spanning_sectors(void *context)
 
 	_expect(f->me, E_CLOSE);
 	io_put_dev(dev);
-}
-
-static uint64_t round_down(uint64_t n, uint64_t d)
-{
-	return (n / d) * d;
-}
-
-static uint64_t round_up(uint64_t n, uint64_t d)
-{
-	return ((n + d - 1) / d) * d;
 }
 
 static void test_zero_bytes_spanning_blocks(void *context)

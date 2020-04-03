@@ -17,7 +17,6 @@
 
 #include "base/data-struct/list.h"
 
-#include <linux/fs.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
